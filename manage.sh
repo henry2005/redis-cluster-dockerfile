@@ -1,10 +1,14 @@
 #!/bin/bash
 cd /app/redis
 redis_port=$1
+echo "==============="
+echo $PORT
+echo "==============="
 echo $redis_port
+echo "==============="
 cd /app/redis
 if [ -n $2 ];then
-    ip=$2 
+    ip=$2
     sed -i "s/bind 127.0.0.1/bind $ip/g" redis.conf
 fi
 sed -i "s/6379/$redis_port/g" redis.conf

@@ -1,38 +1,44 @@
-FROM centos:6.6
-MAINTAINER xiaorui.cc <rfyiamcool@163.com>
+FROM debian:jessie
+MAINTAINER dianwei
 
-# at /
-RUN touch ceshi.qian
-WORKDIR /app/
-COPY manage.sh /app/
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		ca-certificates \
+		wget \
+	&& rm -rf /var/lib/apt/lists/*
 
-RUN rpm --import https://fedoraproject.org/static/0608B895.txt
-RUN rpm -ivh http://mirrors.zju.edu.cn/epel/6/i386/epel-release-6-8.noarch.rpm
+RUN buildDeps='gcc libc6-dev make' \
+	&& set -x \
+	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends \
+	&& rm -rf /var/lib/apt/lists/*
 
-RUN yum update -y && \
-    yum install -y --enablerepo=epel  \
-      tar \
-      gcc \
-      wget \
-      jemalloc.x86_64 \
-      jemalloc-devel.x86_64 
+RUN mkdir -p /app
+RUN mkdir -p /app/redis
+RUN mkdir -p /data
 
-RUN yum clean all
+WORKDIR /app
 
-RUN touch ceshi.file
+ENV REDIS_VERSION 3.2.1
+ENV REDIS_DOWNLOAD_URL http://download.redis.io/releases/redis-3.2.1.tar.gz
+ENV REDIS_DOWNLOAD_SHA1 26c0fc282369121b4e278523fce122910b65fbbf
+
 RUN cd /app \
-	&& wget http://download.redis.io/releases/redis-3.0.1.tar.gz \
-	&& tar zxvf redis-3.0.1.tar.gz \
-	&& mv redis-3.0.1 redis \ 
-	&& cd redis \
-	&& cd deps \
-	&& make hiredis lua\
-	&& cd jemalloc;./configure;make;cd ../..\
-	&& make \
-	&& make install
+        && wget -O redis.tar.gz "$REDIS_DOWNLOAD_URL" \
+        && tar -xzf redis.tar.gz -C redis --strip-components=1 \
+        && cd redis \
+        && cd deps \
+        && make hiredis lua\
+        && cd jemalloc;./configure;make;cd ../..\
+        && make \
+        && make install \
+        && apt-get purge -y --auto-remove $buildDeps
 
-ENV PORT 6379
+VOLUME /data
 
-ENTRYPOINT ["/app/manage.sh"]
-#CMD ["/app/manage.sh"]
-CMD ["bash"]
+ADD redis.conf /app
+ADD redis.sh /app
+
+RUN chmod +x /app/redis.sh
+
+ENV REDIS_PORT 6379
+
+ENTRYPOINT ["/app/redis.sh", "-d"]
