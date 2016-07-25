@@ -16,8 +16,10 @@ ENV REDIS_VERSION 3.2.1
 ENV REDIS_DOWNLOAD_URL http://download.redis.io/releases/redis-3.2.1.tar.gz
 ENV REDIS_DOWNLOAD_SHA1 26c0fc282369121b4e278523fce122910b65fbbf
 
+ADD redis.tar.gz /app
+
 RUN cd /app \
-        && wget -O redis.tar.gz "$REDIS_DOWNLOAD_URL" \
+        #&& wget -O redis.tar.gz "$REDIS_DOWNLOAD_URL" \
         && tar -xzf redis.tar.gz -C redis --strip-components=1 \
         && cd redis \
         && cd deps \
