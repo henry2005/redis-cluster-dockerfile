@@ -1,12 +1,7 @@
 FROM debian:jessie
 MAINTAINER dianwei
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-		ca-certificates \
-		wget \
-	&& rm -rf /var/lib/apt/lists/*
-
-RUN buildDeps='gcc libc6-dev make' \
+RUN buildDeps='wget gcc libc6-dev make' \
 	&& set -x \
 	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
